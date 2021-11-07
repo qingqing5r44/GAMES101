@@ -1,4 +1,4 @@
-# GAMES101 HOMEWORK SUMMARY & FINAL PROJECT
+# GAMES101 HOMEWORK & FINAL PROJECT
 
 Course: [GAMES101 Introduction to Computer Graphics](https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html) taught by Prof.Yan Lingqi in UCSB
 
