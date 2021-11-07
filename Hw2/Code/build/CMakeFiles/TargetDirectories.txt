@@ -1,0 +1,3 @@
+/home/qingqing/Desktop/graphics/games101/homework/Hw2/Code/build/CMakeFiles/rebuild_cache.dir
+/home/qingqing/Desktop/graphics/games101/homework/Hw2/Code/build/CMakeFiles/edit_cache.dir
+/home/qingqing/Desktop/graphics/games101/homework/Hw2/Code/build/CMakeFiles/Rasterizer.dir
