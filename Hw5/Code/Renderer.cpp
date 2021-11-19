@@ -210,7 +210,12 @@ Vector3f castRay(
 // [/comment]
 void Renderer::Render(const Scene& scene)
 {
-    std::vector<Vector3f> framebuffer(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer1(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer2(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer3(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer4(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer5(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer6(scene.width * scene.height);
 
     float scale = std::tan(deg2rad(scene.fov * 0.5f));
     float imageAspectRatio = scene.width / (float)scene.height;
@@ -238,7 +243,13 @@ void Renderer::Render(const Scene& scene)
             Vector3f dir = Vector3f(x, y, -1); 
             // Don't forget to normalize this direction!
             dir = normalize(dir);
-            framebuffer[m++] = castRay(eye_pos, dir, scene, 0);
+            framebuffer1[m] = castRay(eye_pos, dir, scene, 0);
+            framebuffer2[m] = castRay(eye_pos, dir, scene, 0);
+            framebuffer3[m] = castRay(eye_pos, dir, scene, 0);
+            framebuffer4[m] = castRay(eye_pos, dir, scene, 0);
+            framebuffer5[m] = castRay(eye_pos, dir, scene, 0);
+            framebuffer6[m] = castRay(eye_pos, dir, scene, 0);
+            m++;
         }
         UpdateProgress(j / (float)scene.height);
     }
@@ -248,9 +259,13 @@ void Renderer::Render(const Scene& scene)
     (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
     for (auto i = 0; i < scene.height * scene.width; ++i) {
         static unsigned char color[3];
-        color[0] = (char)(255 * clamp(0, 1, framebuffer[i].x));
-        color[1] = (char)(255 * clamp(0, 1, framebuffer[i].y));
-        color[2] = (char)(255 * clamp(0, 1, framebuffer[i].z));
+        float temp;
+        temp = (framebuffer1[i].x + framebuffer2[i].x + framebuffer3[i].x + framebuffer4[i].x + framebuffer5[i].x + framebuffer6[i].x)/6;
+        color[0] = (char)(255 * clamp(0, 1, temp));
+        temp = (framebuffer1[i].y + framebuffer2[i].y + framebuffer3[i].y + framebuffer4[i].y + framebuffer5[i].y + framebuffer6[i].y)/6;
+        color[1] = (char)(255 * clamp(0, 1, temp));
+        temp = (framebuffer1[i].z + framebuffer2[i].z + framebuffer3[i].z + framebuffer4[i].z + framebuffer5[i].z + framebuffer6[i].z)/6;
+        color[2] = (char)(255 * clamp(0, 1, temp));
         fwrite(color, 1, 3, fp);
     }
     fclose(fp);    

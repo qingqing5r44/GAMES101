@@ -14,7 +14,7 @@ public:
     int height = 960;
     double fov = 90;
     Vector3f backgroundColor = Vector3f(0.235294, 0.67451, 0.843137);
-    int maxDepth = 5;
+    int maxDepth = 50;
     float epsilon = 0.00001;
 
     Scene(int w, int h) : width(w), height(h)
