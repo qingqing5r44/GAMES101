@@ -34,6 +34,7 @@ inline bool solveQuadratic(const float& a, const float& b, const float& c, float
 enum MaterialType
 {
     DIFFUSE_AND_GLOSSY,
+    DIFFUSE_AND_GLOSSY_MeshTriangle,
     REFLECTION_AND_REFRACTION,
     REFLECTION
 };

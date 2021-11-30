@@ -115,7 +115,7 @@ std::optional<hit_payload> trace(
 // then we compute the reflection/refraction direction and cast two new rays into the scene
 // by calling the castRay() function recursively. When the surface is transparent, we mix
 // the reflection and refraction color using the result of the fresnel equations (it computes
-// the amount of reflection and refraction depending on the surface normal, incident view direction
+// the amount of rpayloadeflection and refraction depending on the surface normal, incident view direction
 // and surface refractive index).
 //
 // If the surface is diffuse/glossy we use the Phong illumation model to compute the color
@@ -126,7 +126,7 @@ Vector3f castRay(
         int depth)
 {
     if (depth > scene.maxDepth) {
-        return Vector3f(0.0,0.0,0.0);
+        return Vector3f(10.0, 10.0, 10.0);
     }
 
     Vector3f hitColor = scene.backgroundColor;
@@ -177,6 +177,8 @@ Vector3f castRay(
                 // Loop over all lights in the scene and sum their contribution up
                 // We also apply the lambert cosine law
                 // [/comment]
+                bool mark1,mark2; int i = 0;
+                mark1 = mark2 = 0;
                 for (auto& light : scene.get_lights()) {
                     Vector3f lightDir = light->position - hitPoint;
                     // square of the distance between hitPoint and the light
@@ -186,14 +188,19 @@ Vector3f castRay(
                     // is the point in shadow, and is the nearest occluding object closer to the object than the light itself?
                     auto shadow_res = trace(shadowPointOrig, lightDir, scene.get_objects());
                     bool inShadow = shadow_res && (shadow_res->tNear * shadow_res->tNear < lightDistance2);
-
+                    if(inShadow && i == 0)
+                        mark1 = 1;
+                    if(inShadow && i == 1)
+                        mark2 = 1; 
+                    i++;                   
                     lightAmt += inShadow ? 0 : light->intensity * LdotN;
                     Vector3f reflectionDirection = reflect(-lightDir, N);
 
                     specularColor += powf(std::max(0.f, -dotProduct(reflectionDirection, dir)),
                         payload->hit_obj->specularExponent) * light->intensity;
                 }
-
+                if(mark1 && mark2 && payload->hit_obj->materialType == DIFFUSE_AND_GLOSSY_MeshTriangle)
+                    lightAmt = 0.15;
                 hitColor = lightAmt * payload->hit_obj->evalDiffuseColor(st) * payload->hit_obj->Kd + specularColor * payload->hit_obj->Ks;
                 break;
             }
@@ -210,12 +217,7 @@ Vector3f castRay(
 // [/comment]
 void Renderer::Render(const Scene& scene)
 {
-    std::vector<Vector3f> framebuffer1(scene.width * scene.height);
-    std::vector<Vector3f> framebuffer2(scene.width * scene.height);
-    std::vector<Vector3f> framebuffer3(scene.width * scene.height);
-    std::vector<Vector3f> framebuffer4(scene.width * scene.height);
-    std::vector<Vector3f> framebuffer5(scene.width * scene.height);
-    std::vector<Vector3f> framebuffer6(scene.width * scene.height);
+    std::vector<Vector3f> framebuffer(scene.width * scene.height);
 
     float scale = std::tan(deg2rad(scene.fov * 0.5f));
     float imageAspectRatio = scene.width / (float)scene.height;
@@ -223,6 +225,51 @@ void Renderer::Render(const Scene& scene)
     // Use this variable as the eye position to start your rays.
     Vector3f eye_pos(0);
     int m = 0;
+    // change the spp value to change sample ammount
+    int spp = 4;
+
+    // for (int j = 0; j < scene.height; ++j)
+    // {
+    //     for (int i = 0; i < scene.width; ++i)
+    //     {
+    //         // generate primary ray direction
+    //         float x;
+    //         float y;
+    //         // TODO: Find the x and y positions of the current pixel to get the direction
+    //         // vector that passes through it.
+    //         // Also, don't forget to multiply both of them with the variable *scale*, and
+    //         // x (horizontal) variable with the *imageAspectRatio*
+    //         float x1, y1;
+    //         x1 = (i + 0.5)/scene.width;b Renderer.cpp:304
+
+    //         y1 = (j + 0.5)/scene.height;
+    //         x = (2 * x1 - 1) * imageAspectRatio * scale;
+    //         y = (1 - 2 * y1) * scale;
+
+    //         Vector3f dir = Vector3f(x, y, -1); 
+    //         // Don't forget to normalize this direction!
+    //         dir = normalize(dir);
+    //         for (int k = 0; k < spp; k++){
+    //             framebuffer[m] += castRay(eye_pos, dir, scene, 0) / spp;  
+    //         }
+    //         m++;
+    //     }
+    //     UpdateProgress(j / (float)scene.height);
+    // }
+
+    // // save framebuffer to file
+    // FILE* fp = fopen("binary.ppm", "wb");
+    // (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
+    // for (auto i = 0; i < scene.height * scene.width; ++i) {
+    //     static unsigned char color[3];
+    //     color[0] = (char)(255 * clamp(0, 1, framebuffer[i].x));
+    //     color[1] = (char)(255 * clamp(0, 1, framebuffer[i].y));
+    //     color[2] = (char)(255 * clamp(0, 1, framebuffer[i].z));
+    //     fwrite(color, 1, 3, fp);
+    // }
+    // save framebuffer to file
+    FILE* fp = fopen("binary.ppm", "wb");
+    (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
     for (int j = 0; j < scene.height; ++j)
     {
         for (int i = 0; i < scene.width; ++i)
@@ -243,30 +290,21 @@ void Renderer::Render(const Scene& scene)
             Vector3f dir = Vector3f(x, y, -1); 
             // Don't forget to normalize this direction!
             dir = normalize(dir);
-            framebuffer1[m] = castRay(eye_pos, dir, scene, 0);
-            framebuffer2[m] = castRay(eye_pos, dir, scene, 0);
-            framebuffer3[m] = castRay(eye_pos, dir, scene, 0);
-            framebuffer4[m] = castRay(eye_pos, dir, scene, 0);
-            framebuffer5[m] = castRay(eye_pos, dir, scene, 0);
-            framebuffer6[m] = castRay(eye_pos, dir, scene, 0);
+            for (int k = 0; k < spp; k++){
+                framebuffer[m] += castRay(eye_pos, dir, scene, 0) / spp;  
+            }
+            static unsigned char color[3];
+            color[0] = (char)(255 * clamp(0, 1, framebuffer[m].x));
+            color[1] = (char)(255 * clamp(0, 1, framebuffer[m].y));
+            color[2] = (char)(255 * clamp(0, 1, framebuffer[m].z));
+            // if(color[0] < 3)
+            //     printf("a");
+            fwrite(color, 1, 3, fp);            
             m++;
+            if(j>600 && i>480)
+                printf("b");
         }
-        UpdateProgress(j / (float)scene.height);
-    }
-
-    // save framebuffer to file
-    FILE* fp = fopen("binary.ppm", "wb");
-    (void)fprintf(fp, "P6\n%d %d\n255\n", scene.width, scene.height);
-    for (auto i = 0; i < scene.height * scene.width; ++i) {
-        static unsigned char color[3];
-        float temp;
-        temp = (framebuffer1[i].x + framebuffer2[i].x + framebuffer3[i].x + framebuffer4[i].x + framebuffer5[i].x + framebuffer6[i].x)/6;
-        color[0] = (char)(255 * clamp(0, 1, temp));
-        temp = (framebuffer1[i].y + framebuffer2[i].y + framebuffer3[i].y + framebuffer4[i].y + framebuffer5[i].y + framebuffer6[i].y)/6;
-        color[1] = (char)(255 * clamp(0, 1, temp));
-        temp = (framebuffer1[i].z + framebuffer2[i].z + framebuffer3[i].z + framebuffer4[i].z + framebuffer5[i].z + framebuffer6[i].z)/6;
-        color[2] = (char)(255 * clamp(0, 1, temp));
-        fwrite(color, 1, 3, fp);
+        //UpdateProgress(j / (float)scene.height);
     }
     fclose(fp);    
 }
