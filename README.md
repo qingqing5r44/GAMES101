@@ -12,5 +12,5 @@ Homework List:
 - Hw7: Path Tracing
 - Hw8: Rope Simulation
 
-Final Project:
+Final Project: Light Field Camera
 
