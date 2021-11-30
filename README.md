@@ -1,4 +1,4 @@
-# GAMES101 HOMEWORK & FINAL PROJECT
+# GAMES101 HOMEWORK
 
 Course: [GAMES101 Introduction to Computer Graphics](https://sites.cs.ucsb.edu/~lingqi/teaching/games101.html) taught by Prof.Yan Lingqi in UCSB
 
@@ -11,6 +11,4 @@ Homework List:
 - Hw6: Bounding Volume Hierarchy (BVH)
 - Hw7: Path Tracing
 - Hw8: Rope Simulation
-
-Final Project: Light Field Camera
 
